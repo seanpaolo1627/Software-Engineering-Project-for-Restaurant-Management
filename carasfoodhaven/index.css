@@ -1,0 +1,209 @@
+body, html {
+    height: 100%;
+    background-image: radial-gradient(circle, white, rgb(242, 242, 116), rgb(251, 251, 82));
+    font-family: 'Open Sans', sans-serif;
+}
+
+*{
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    text-decoration: none;
+}
+
+#image-container {
+    position: relative;
+    top: 50.3%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: rgb(242, 242, 116); 
+    border-bottom: 6px solid rgb(215, 215, 66);
+}
+
+.RestaurantLogo {
+    position: absolute; /* Add position absolute */
+    top: 50%; /* Move to 50% from top */
+    left: 50%; /* Move to 50% from left */
+    transform: translate(-50%, -50%); /* Center the logo */
+    z-index: 9999;
+    width: 40%;
+}
+
+#rotating-image {
+    min-width: 100%;
+    min-height: 100%;
+    max-width: none;
+    max-height: none;
+    transition: opacity 0.5s ease-in-out;
+}
+
+nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-image: linear-gradient( rgb(155, 28, 28), rgb(193, 37, 37), rgb(155, 28, 28));
+    border-bottom: 3px solid #891f1f;
+    height: 60px;
+    z-index: 3;
+    overflow: visible;
+    display: flex;
+    align-items: center; /* Center vertically */
+    justify-content: space-between; /* Distribute items along the main axis */
+}
+
+nav img {
+    margin-top: 40%;
+    width: 200px;
+    margin-left: 10%;
+}
+
+.search-bar {
+    margin-right: auto; 
+    display: flex;
+    align-items: center;
+    margin-left: 3%;
+}
+
+.search-bar input {
+    border: none;
+    padding: 10px;
+    width: 200px;
+    border-radius: 5px;
+}
+
+.search-bar button {
+    border: none;
+    background-color: #eee869;
+    color: #cc5907;
+    font-size: 15px;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-left: 2%;
+}
+
+.search-bar button:hover {
+    background-color: #eeba4c;
+}
+
+nav ul {
+    margin-left: auto; 
+    margin-right: 3%;
+    white-space: nowrap; 
+    overflow: hidden; 
+}
+
+nav ul li {
+    display: inline-block;
+    line-height: 80px;
+    overflow: hidden;
+}
+
+nav ul li a {
+    position: relative;
+    color: white;
+    font-size: 14px;
+    text-transform: uppercase;
+    margin-left: 80px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* nav ul li a:hover {
+    font-weight: bold;
+} */
+
+nav ul li a:before {
+    position: absolute;
+    content: '';
+    left: 0;
+    bottom: 0;
+    top: 20px;
+    height: 3px;
+    width: 100%;
+    background: white;
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform .4s linear;
+}
+
+nav ul li a:hover:before {
+    transform: scaleX(1);
+    transform-origin: left;
+}
+
+nav ul li.current-page a:before {
+    transform: scaleX(1);
+    transform-origin: left;
+}
+
+.container{
+    position: inherit;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    padding: 30px;
+    padding-top: 140px;
+    overflow: auto;
+}
+
+.container .card{
+    width: 340px;
+    position: relative;
+    height: 500px;
+    background: #f7f7f7;
+    border: 3px solid rgb(80, 80, 80);
+    box-shadow: 20px 20px #b4b4b4;
+    color: rgb(63, 63, 63);
+    margin: 30px 50px;
+    margin-bottom: 10%;
+    padding: 20px 15px;
+    display: flex;
+    flex-direction: column;
+    transition: 0.3s ease-in-out;
+}
+
+.container .card p{
+    margin-top: 5%;
+    padding: 5px;
+    text-align: justify; 
+    line-height: 130%;
+    font-size: 16px;
+}
+
+.container .card h2 {
+    text-align: center;
+    margin-top: 42%;
+    line-height: 140%;
+}
+
+.container .card .imgBox {
+    position: absolute;
+    width: 220px;
+    height: 220px;
+    top: 5%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2); 
+    text-align: center;
+}
+
+.container .card .imgBox img{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border: 4px solid rgb(80, 80, 80);
+    border-radius: 10px;
+}
+
+.imgBox:hover img{
+    transform: scale(1.1);
+}
