@@ -1750,7 +1750,7 @@ if ($_POST['action'] == 'add_menu_item') {
     <div class="container-full">
         <div class="filter-bar">
             <button class="filter-btn" data-status="ALL">
-                <i class="fas fa-list"></i> All <span class="count">0</span>
+                <i class="fas fa-list"></i> All 
             </button>
             <button class="filter-btn active" data-status="PENDING">
                 <i class="fas fa-clock"></i> Pending <span class="count">0</span>
@@ -3550,15 +3550,10 @@ if ($_POST['action'] == 'add_menu_item') {
 
 
 
+<script>
 
 
-    <!-- ============================================================ -->
-    <!-- ============================================================ -->
-    <!-- ============================================================ -->
-
-    <script>
-      document.addEventListener("DOMContentLoaded", function() {
-
+document.addEventListener("DOMContentLoaded", function() {
 // Hide all div containers initially
 const divContainers = document.querySelectorAll(".container");
 divContainers.forEach(container => {
@@ -3621,7 +3616,8 @@ document.getElementById('customer-birthdate').max = new Date().toISOString().spl
 
 
 
-// LOGIN
+///////////////// LOGIN //////////////////////////////
+
 document.addEventListener("DOMContentLoaded", function() {
         const accountDropdown = document.querySelector('.account-dropdown');
         const dropdownArrow = document.getElementById('dropdown-arrow');
@@ -3650,7 +3646,7 @@ document.addEventListener("DOMContentLoaded", function() {
       });
 
 
-// SEAN SCRIPT FOR MENU ITEM AND INGREDIENT CRUD ///////////////////////////
+/////////////// SEAN SCRIPT FOR MENU ITEM AND INGREDIENT CRUD ///////////////////////////
 
 function handleMenuItemAction(action) {
     
@@ -3756,6 +3752,11 @@ function refreshMenuItemTable() {
 document.addEventListener('DOMContentLoaded', function() {
     refreshMenuItemTable();
 });
+
+
+
+///////////////// MenuCategory //////////////////////////////
+
 
 
 function handleMenuCategoryAction(action) {
@@ -3873,7 +3874,10 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 
-        // Function to fetch and display all Ingredient Units when the page loads
+///////////////// IngredientUnit //////////////////////////////
+
+
+ // Function to fetch and display all Ingredient Units when the page loads
     document.addEventListener('DOMContentLoaded', function() {
             fetchIngredientUnits();
     });
@@ -4090,7 +4094,13 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
-        function fetchIngredientCategories() {
+
+
+
+        
+///////////////// Ingredient Category //////////////////////////////
+
+    function fetchIngredientCategories() {
     fetch('management.php?action=get_ingredient_categories')
         .then(response => {
             if (!response.ok) {
@@ -4170,6 +4180,8 @@ function addNewIngredientCategory() {
         alert('Error adding ingredient category: ' + error.message);
     });
 }
+
+
 
 function updateSelectedIngredientCategory() {
     const id = document.getElementById('ingredient-category-id').value;
@@ -4262,6 +4274,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+
+///////////////// Ingredient //////////////////////////////
+
 function handleIngredientAction(action) {
     const form = document.getElementById('ingredient-form');
     const formData = new FormData(form);
@@ -4305,7 +4320,40 @@ document.addEventListener('DOMContentLoaded', function() {
     refreshIngredientTable();
 });
 
+function deleteSelectedIngredient() {
+    const id = document.getElementById('ingredient-id').value;
+    if (!id) {
+        alert('Please select an ingredient to delete');
+        return;
+    }
 
+    if (confirm('Are you sure you want to delete this ingredient?')) {
+        document.getElementById('ingredient-form-action').value = 'delete_ingredient';
+        document.getElementById('ingredient-id').disabled = false;
+        
+        // Submit form using fetch to prevent page reload
+        const form = document.getElementById('ingredient-form');
+        const formData = new FormData(form);
+        
+        fetch('management.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.text())
+        .then(data => {
+            alert('Ingredient deleted successfully');
+            // Remove the row from the table
+            const row = document.querySelector(`#ingredient-table tr[onclick*="'${id}'"]`);
+            if (row) row.remove();
+            // Clear the form
+            clearFormFields('ingredient-table', 'ingredient-form', 'YES');
+        })
+        .catch(error => {
+            alert('Error deleting ingredient');
+            console.error('Error:', error);
+        });
+    }
+}
 // Validate ingredient form
 function validateIngredientForm() {
     const form = document.getElementById('ingredient-form');
@@ -4591,111 +4639,8 @@ document.addEventListener("DOMContentLoaded", function() {
 
 
 
-function deleteSelectedIngredient() {
-    const id = document.getElementById('ingredient-id').value;
-    if (!id) {
-        alert('Please select an ingredient to delete');
-        return;
-    }
-
-    if (confirm('Are you sure you want to delete this ingredient?')) {
-        document.getElementById('ingredient-form-action').value = 'delete_ingredient';
-        document.getElementById('ingredient-id').disabled = false;
-        
-        // Submit form using fetch to prevent page reload
-        const form = document.getElementById('ingredient-form');
-        const formData = new FormData(form);
-        
-        fetch('management.php', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.text())
-        .then(data => {
-            alert('Ingredient deleted successfully');
-            // Remove the row from the table
-            const row = document.querySelector(`#ingredient-table tr[onclick*="'${id}'"]`);
-            if (row) row.remove();
-            // Clear the form
-            clearFormFields('ingredient-table', 'ingredient-form', 'YES');
-        })
-        .catch(error => {
-            alert('Error deleting ingredient');
-            console.error('Error:', error);
-        });
-    }
-}
-
-function deleteSelectedIngredientCategory() {
-    const id = document.getElementById('ingredient-category-id').value;
-    if (!id) {
-        alert('Please select an ingredient category to delete');
-        return;
-    }
-
-    if (confirm('Are you sure you want to delete this ingredient category?')) {
-        document.getElementById('ingredient-category-form-action').value = 'delete_ingredient_category';
-        document.getElementById('ingredient-category-id').disabled = false;
-        
-        const form = document.getElementById('ingredient-category-form');
-        const formData = new FormData(form);
-        
-        fetch('management.php', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.text())
-        .then(data => {
-            alert('Ingredient category deleted successfully');
-            // Remove the row from the table
-            const row = document.querySelector(`#ingredient-category-table tr[onclick*="'${id}'"]`);
-            if (row) row.remove();
-            // Clear the form
-            clearFormFields('ingredient-category-table', 'ingredient-category-form', 'YES');
-        })
-        .catch(error => {
-            alert('Error deleting ingredient category');
-            console.error('Error:', error);
-        });
-    }
-}
-
-function deleteSelectedIngredientUnit() {
-    const id = document.getElementById('ingredient-unit-id').value;
-    if (!id) {
-        alert('Please select an ingredient unit to delete');
-        return;
-    }
-
-    if (confirm('Are you sure you want to delete this ingredient unit?')) {
-        document.getElementById('ingredient-unit-form-action').value = 'delete_ingredient_unit';
-        document.getElementById('ingredient-unit-id').disabled = false;
-        
-        const form = document.getElementById('ingredient-unit-form');
-        const formData = new FormData(form);
-        
-        fetch('management.php', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.text())
-        .then(data => {
-            alert('Ingredient unit deleted successfully');
-            // Remove the row from the table
-            const row = document.querySelector(`#ingredient-unit-table tr[onclick*="'${id}'"]`);
-            if (row) row.remove();
-            // Clear the form
-            clearFormFields('ingredient-unit-table', 'ingredient-unit-form', 'YES');
-        })
-        .catch(error => {
-            alert('Error deleting ingredient unit');
-            console.error('Error:', error);
-        });
-    }
-}
 
 
-      /*============================================================*/
   function fillIngredientForm(row) {
   const cells = row.cells;
   const idName = cells[1].innerText.split(' - ');
@@ -4726,9 +4671,6 @@ function deleteSelectedIngredientUnit() {
       document.getElementById('ingredient-auto-deduct').value = data.willAutoDeduct ? 'true' : 'false';
     });
 }
-
-
-
 
 
       function addNewIngredient() {
@@ -4863,11 +4805,6 @@ function submitIngredientForm(action) {
   }
 
 
-
-
-
-
-
   // Function to fill the form when a table row is clicked
   function fillMenuItemForm(row) {
     const cells = row.cells;
@@ -4916,9 +4853,6 @@ function submitIngredientForm(action) {
         })
         .catch(error => console.error('Error:', error));
 }
-
-
-
 
       
       /*============================================================*/
@@ -4981,8 +4915,11 @@ function submitIngredientForm(action) {
         });
     }
 });    
-// //////////////////////////////////////////////////////////////////////////////////////////////
-// SEAN script for order management
+
+
+
+// /////////////////SEAN order management////////////////////////////////////////////
+
 
 document.addEventListener('DOMContentLoaded', function() {
     // First handle all container visibility and menu buttons
