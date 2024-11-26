@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+      <link rel="stylesheet" href="my-orders.css">
+      <script src="my-orders.js"></script>
+      <title> My Orders Page | Cara's Food Haven </title>
+      <link rel="shortcut icon" type="x-icon" href="../RestaurantLogo-Cut.png">
+  </head>
+
+  <body>
+      
+    <!-- ============================================================ -->
+    <!-- ============================================================ -->
+    <!-- ============================================================ -->
+    
+    <nav>
+      <span> <img src="../RestaurantLogo-Cut.png" class="RestaurantLogo_Nav"> </span>
+      <div class="search-bar">
+          <input type="text" placeholder="Enter your Order ID here">
+          <button type="submit">Search</button>
+      </div>
+      <ul>
+        <li><a href="#"><i class="fas fa-home"></i> <span>Home</span></a></li>
+        <li><a href="../menu_webpage/menu.php"><i class="fas fa-utensils"></i> <span>Menu</span></a></li>
+        <li><a href="#" id="current-page"><i class="fas fa-receipt"></i> <span>My Orders</span></a></li>
+        <li><a href="#"><i class="fas fa-info-circle"></i> <span>About Us</span></a></li>
+        <li class="account-dropdown">
+            <div class="account-info">
+                <img id="account-img" src="../account-img-placeholder.jpg" alt="Avatar">
+                <div>
+                    <span class="account-name"><?php echo htmlspecialchars($userName); ?></span>
+                    <span class="account-role">User</span>
+                </div>
+                <i class="fas fa-caret-down" id="dropdown-arrow"></i>
+            </div>
+            <div class="dropdown-content">
+                <a href="../menu_webpage/login/logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
+        </li>
+      </ul>
+    </nav>
+      
+    <!-- ============================================================ -->
+    <!-- ============================================================ -->
+    <!-- ============================================================ -->
+
+    <div class="verticalmenu_container">
+      <div class="verticalmenu-section">
+        <label class="verticalmenu-label"> TODAY'S ORDERS </label>
+      </div>
+    </div>
+        
+    <!-- ============================================================ -->
+    <!-- ============================================================ -->
+    <!-- ============================================================ -->
+
+    <div id="cancel-order-modal" class="modal">
+      <div id="cancel-order-modal-content" class="modal-content">
+  
+        <h2>Cancel Order?</h2>
+        <br>
+        <p>This action cannot be undone.</p>
+        <br>
+        <div class="action-buttons">
+          <div class="right-buttons"></div>
+            <button id="closeModal" class="action-btn">No, Go Back</button>
+            <button id="confirmCancel" class="action-btn">Yes, Cancel</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- ============================================================ -->
+    <!-- ============================================================ -->
+
+    <!-- Notification Container -->
+    <div id="notification-container"></div>
+
+    <!-- ============================================================ -->
+    <!-- ============================================================ -->
+    <!-- ============================================================ -->
+
+
+
+
+
+
+
+
+
+    
+    <!-- ============================================================ -->
+    <!-- ============================================================ -->
+    <!-- ============================================================ -->
+
+    <div class="container" id="orderManagement">
+      <div class="container-full">
+        
+        <!-- ============================== -->
+
+        <div class="filter-bar">
+          <button class="filter-btn" data-status="ALL">
+            <i class="fas fa-list"></i> All<span class="count" id="count-ALL"></span>
+          </button>
+          <button class="filter-btn" data-status="PENDING">
+            <i class="fas fa-hourglass-start"></i> Pending<span class="count" id="count-PENDING"></span>
+          </button>
+          <button class="filter-btn" data-status="PREPARING">
+            <i class="fas fa-fire"></i>  Preparing<span class="count" id="count-PREPARING"></span>
+          </button>
+          <button class="filter-btn" data-status="READY FOR PICKUP">
+            <i class="fas fa-concierge-bell"></i> Ready for Pickup<span class="count" id="count-READY FOR PICKUP"></span>
+          </button>
+          <button class="filter-btn" data-status="COMPLETE">
+            <i class="fas fa-check-circle"></i> Complete<span class="count" id="count-COMPLETE"></span>
+          </button>
+          <button class="filter-btn" data-status="CANCELED">
+            <i class="fas fa-times-circle"></i> Canceled<span class="count" id="count-CANCELED"></span>
+          </button>
+          <!-- Date Display -->
+          <div id="current-date-time" class="current-date-time"></div>
+        </div>
+
+        <!-- ============================== -->
+    
+        <div class="orders">
+          
+        </div>
+
+        <!-- ============================== -->
+
+      </div>
+    </div>   
+    
+    <!-- ============================================================ -->
+    <!-- ============================================================ -->
+    <!-- ============================================================ -->
+
+    <script src="order-card-viewing.js"></script>
+    
+    <!-- ============================================================ -->
+    <!-- ============================================================ -->
+    <!-- ============================================================ -->
+
+
+
+
+
+
+
+    <!-- ============================================================ -->
+    <!-- ============================================================ -->
+    <!-- ============================================================ -->
+
+    <script src="my-orders-helper-functions.js"></script>
+      
+    <!-- ============================================================ -->
+    <!-- ============================================================ -->
+    <!-- ============================================================ -->
+    
+  </body>
+
+</html>

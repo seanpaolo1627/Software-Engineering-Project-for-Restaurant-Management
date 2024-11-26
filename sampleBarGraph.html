@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monthly Data Bar Graph</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      margin: 0;
+      text-align: center;
+    }
+    canvas {
+      max-width: 90%;
+      margin: 20px auto;
+    }
+    .controls {
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Monthly Data Bar Graph</h1>
+  <div class="controls">
+    <label for="yearSelector">Select Year:</label>
+    <select id="yearSelector" onchange="updateGraph()">
+      <option value="2023">2023</option>
+      <option value="2024" selected>2024</option>
+      <option value="2025">2025</option>
+    </select>
+  </div>
+  <canvas id="monthlyBarGraph"></canvas>
+
+  <script>
+    // Initial data for 2024
+    const initialYear = 2024;
+    const dataByYear = {
+      2023: [50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160],
+      2024: [40, 55, 65, 75, 85, 95, 105, 115, 125, 135, 145, 155],
+      2025: [45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100]
+    };
+
+    // Configuration for the Chart.js bar graph
+    const ctx = document.getElementById('monthlyBarGraph').getContext('2d');
+    const monthlyBarGraph = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: [
+          'January', 'February', 'March', 'April', 'May', 
+          'June', 'July', 'August', 'September', 'October', 
+          'November', 'December'
+        ],
+        datasets: [{
+  label: `Monthly Data for ${initialYear}`,
+  data: dataByYear[initialYear],
+  backgroundColor: [
+    'rgba(255, 99, 132, 0.5)',
+    'rgba(54, 162, 235, 0.5)',
+    'rgba(255, 206, 86, 0.5)',
+    'rgba(75, 192, 192, 0.5)',
+    'rgba(153, 102, 255, 0.5)',
+    'rgba(255, 159, 64, 0.5)',
+    'rgba(99, 255, 132, 0.5)',
+    'rgba(162, 54, 235, 0.5)',
+    'rgba(206, 255, 86, 0.5)',
+    'rgba(192, 75, 192, 0.5)',
+    'rgba(102, 153, 255, 0.5)',
+    'rgba(159, 255, 64, 0.5)'
+  ],
+  borderColor: 'rgba(0, 0, 0, 0.8)',
+  borderWidth: 1,
+  barPercentage: 0.8, // Adjusts bar width relative to category
+  categoryPercentage: 0.8 // Adjusts spacing between bars
+}]
+      },
+      options: {
+        responsive: true,
+        indexAxis: 'x', // Ensure bars run vertically above the months
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top'
+          }
+        },
+        scales: {
+          x: {
+            ticks: {
+                autoSkip: false, // Ensure all labels are displayed
+                maxRotation: 0, // Disable rotation
+                minRotation: 0, // Disable rotation
+                padding: 10, // Add extra padding between labels
+                font: {
+                size: 10, // Reduce font size if needed
+                },
+            },
+        },
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    });
+
+    // Update graph when a new year is selected
+    function updateGraph() {
+      const selectedYear = document.getElementById('yearSelector').value;
+      monthlyBarGraph.data.datasets[0].data = dataByYear[selectedYear];
+      monthlyBarGraph.data.datasets[0].label = `Monthly Data for ${selectedYear}`;
+      monthlyBarGraph.update();
+    }
+  </script>
+</body>
+</html>
