@@ -808,19 +808,16 @@ td.status-cell {
 
 
 
-/* #cancel-order-modal {
-    all: unset;
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.8);
-    z-index: 999;
-    justify-content: center;
-    align-items: center;
-} */
+#cancel-order-modal {
+    background-color: rgba(0, 0, 0, 0.5);
+}
+#cancel-order-modal .modal-content {
+    background-color: white;
+    border-radius: 8px;
+    padding: 24px;
+    max-width: 400px;
+    text-align: center;
+}
 
 #wasted-ingredients-modal-content {
     width: fit-content;
@@ -873,12 +870,19 @@ td.status-cell {
 }
 
 #confirmCancel {
-    background-color: #dc3545; 
-    color: white; 
+    background-color: #dc3545;
+    color: white;
+    border: 2px solid #bd2130;
+    padding: 10px 20px;
+    font-weight: bold;
+    transition: all 0.3s ease;
 }
 
+
 #confirmCancel:hover {
-    background-color: #c82333; 
+    background-color: #c82333;
+    border-color: #a71d2a;
+    transform: scale(1.05);
 }
 
 #closeModal {
@@ -1199,7 +1203,24 @@ td.status-cell {
 .action-btn.update.ready-for-pickup { background-color: blue !important; }
 .action-btn.update.complete { background-color: green !important; }
 
-.action-btn.cancel { background-color: red !important; }
+.action-btn.cancel {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    margin-left: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.action-btn.cancel:hover {
+    background-color: #c82333 !important;
+    border-color: #a71d2a !important;
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
 
 
 
