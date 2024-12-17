@@ -70,6 +70,8 @@ class ClusterUpdate extends \Google\Collection
    * @var bool
    */
   public $desiredEnablePrivateEndpoint;
+  protected $desiredEnterpriseConfigType = DesiredEnterpriseConfig::class;
+  protected $desiredEnterpriseConfigDataType = '';
   protected $desiredFleetType = Fleet::class;
   protected $desiredFleetDataType = '';
   protected $desiredGatewayApiConfigType = GatewayAPIConfig::class;
@@ -122,6 +124,8 @@ class ClusterUpdate extends \Google\Collection
   protected $desiredNodeKubeletConfigDataType = '';
   protected $desiredNodePoolAutoConfigKubeletConfigType = NodeKubeletConfig::class;
   protected $desiredNodePoolAutoConfigKubeletConfigDataType = '';
+  protected $desiredNodePoolAutoConfigLinuxNodeConfigType = LinuxNodeConfig::class;
+  protected $desiredNodePoolAutoConfigLinuxNodeConfigDataType = '';
   protected $desiredNodePoolAutoConfigNetworkTagsType = NetworkTags::class;
   protected $desiredNodePoolAutoConfigNetworkTagsDataType = '';
   protected $desiredNodePoolAutoConfigResourceManagerTagsType = ResourceManagerTags::class;
@@ -448,6 +452,20 @@ class ClusterUpdate extends \Google\Collection
     return $this->desiredEnablePrivateEndpoint;
   }
   /**
+   * @param DesiredEnterpriseConfig
+   */
+  public function setDesiredEnterpriseConfig(DesiredEnterpriseConfig $desiredEnterpriseConfig)
+  {
+    $this->desiredEnterpriseConfig = $desiredEnterpriseConfig;
+  }
+  /**
+   * @return DesiredEnterpriseConfig
+   */
+  public function getDesiredEnterpriseConfig()
+  {
+    return $this->desiredEnterpriseConfig;
+  }
+  /**
    * @param Fleet
    */
   public function setDesiredFleet(Fleet $desiredFleet)
@@ -726,6 +744,20 @@ class ClusterUpdate extends \Google\Collection
   public function getDesiredNodePoolAutoConfigKubeletConfig()
   {
     return $this->desiredNodePoolAutoConfigKubeletConfig;
+  }
+  /**
+   * @param LinuxNodeConfig
+   */
+  public function setDesiredNodePoolAutoConfigLinuxNodeConfig(LinuxNodeConfig $desiredNodePoolAutoConfigLinuxNodeConfig)
+  {
+    $this->desiredNodePoolAutoConfigLinuxNodeConfig = $desiredNodePoolAutoConfigLinuxNodeConfig;
+  }
+  /**
+   * @return LinuxNodeConfig
+   */
+  public function getDesiredNodePoolAutoConfigLinuxNodeConfig()
+  {
+    return $this->desiredNodePoolAutoConfigLinuxNodeConfig;
   }
   /**
    * @param NetworkTags

@@ -1,173 +1,122 @@
 <?php
-// menu_webpage/paymongo_success.php
-
-require_once('vendor/autoload.php'); // Ensure Guzzle is autoloaded
-
-   // Load environment variables
-   $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
-   $dotenv->load();
+session_start();
+require_once __DIR__ . '/vendor/autoload.php';
+include 'login/connect.php';
 
 use GuzzleHttp\Client;
 
-// Start the session
-session_start();
-
-// Include database connection
-include 'login/connect.php';
-
-// Function to redirect with message
 function redirectWithMessage($message, $success = true) {
-    // You can customize this to redirect to a specific page with a message
-    // For simplicity, we'll redirect to order_confirmation.php
     header("Location: order_confirmation.php?message=" . urlencode($message) . "&success=" . ($success ? "1" : "0"));
     exit();
 }
 
 try {
-    // Retrieve the session_id from PayMongo URL parameters
-    if (!isset($_GET['payment_session'])) {
-        throw new Exception("Payment session ID not found.");
+    // Retrieve the session ID from session storage
+    if (!isset($_SESSION['paymongo_session_id'])) {
+        throw new Exception("No payment session ID found in session. Payment might not have been completed.");
     }
 
-    $sessionId = $_GET['payment_session'];
+    $sessionId = $_SESSION['paymongo_session_id'];
 
-    if (!$sessionId) {
-        throw new Exception("Invalid payment session ID.");
-    }
-
-    // Initialize Guzzle Client
     $client = new Client();
+    $paymongoSecretKey = 'sk_test_AkA74hYDrtPYk5ZA8BbuNbxZ';
 
-    // Replace 'YOUR_PAYMONGO_SECRET_KEY' with your actual PayMongo secret key
-    $paymongoSecretKey = getenv('PAYMONGO_SECRET_KEY'); // Ensure this is set in your environment variables
-
-    if (!$paymongoSecretKey) {
-        throw new Exception("PayMongo secret key not set in environment variables.");
-    }
-
-    // Fetch the payment session details from PayMongo
-    $response = $client->request('GET', 'https://api.paymongo.com/v1/checkout_sessions/' . $sessionId, [
+    // Fetch payment session details
+    $response = $client->request('GET', "https://api.paymongo.com/v1/checkout_sessions/" . $sessionId, [
         'headers' => [
             'Accept' => 'application/json',
             'Authorization' => 'Basic ' . base64_encode($paymongoSecretKey . ':')
         ]
     ]);
 
-    $responseBody = json_decode($response->getBody(), true);
+    $sessionData = json_decode($response->getBody(), true);
 
-    if (
-        isset($responseBody['data']['attributes']['payments']) &&
-        count($responseBody['data']['attributes']['payments']) > 0
-    ) {
-        $payment = $responseBody['data']['attributes']['payments'][0];
-        $status = $payment['attributes']['status'];
+    if (!isset($sessionData['data']['attributes']['payment_intent']['id'])) {
+        throw new Exception("Payment intent not found in session data.");
+    }
 
-        if ($status === 'paid') {
-            // Payment was successful, process the order
-            // Retrieve order details from metadata
-            $metadata = $responseBody['data']['attributes']['metadata'];
+    $paymentIntentId = $sessionData['data']['attributes']['payment_intent']['id'];
+    $metadata = $sessionData['data']['attributes']['metadata'] ?? [];
+    $paymentStatus = $sessionData['data']['attributes']['status'] ?? 'unknown';
 
-            $orderType = $metadata['order_type'] ?? '';
-            $customerName = $metadata['customer_name'] ?? '';
-            $contactNumber = $metadata['contact_number'] ?? '';
-            $email = $metadata['email'] ?? '';
-            $address = $metadata['address'] ?? '';
-            $orderItems = $metadata['order_items'] ?? [];
+    // If payment status is not paid, double-check the payment intent itself
+    if ($paymentStatus !== 'paid') {
+        // Check the payment intent status directly
+        $piResponse = $client->request('GET', "https://api.paymongo.com/v1/payment_intents/" . $paymentIntentId, [
+            'headers' => [
+                'Accept' => 'application/json',
+                'Authorization' => 'Basic ' . base64_encode($paymongoSecretKey . ':')
+            ]
+        ]);
 
-            $customerId = $_SESSION['customer_id'] ?? null;
+        $piData = json_decode($piResponse->getBody(), true);
+        $paymentIntentStatus = $piData['data']['attributes']['status'] ?? 'unknown';
 
-            if (!$customerId) {
-                throw new Exception("Customer ID not found in session.");
-            }
-
-            // Start transaction
-            $conn->begin_transaction();
-
-            // Insert order header
-            $orderQuery = "INSERT INTO `order` (order_type, order_status, total_price, payment_id, customer_ID) 
-                          VALUES (?, 'PAID', ?, ?, ?)";
-            $stmt = $conn->prepare($orderQuery);
-            if (!$stmt) {
-                throw new Exception("Prepare statement failed: " . $conn->error);
-            }
-
-            $totalAmount = array_sum(array_column($orderItems, 'subtotal'));
-
-            // Bind parameters
-            $stmt->bind_param("sdsi", 
-                $orderType, 
-                $totalAmount,
-                $payment['id'], // payment_id from PayMongo
-                $customerId
-            );
-
-            if (!$stmt->execute()) {
-                throw new Exception("Execute failed: " . $stmt->error);
-            }
-
-            $orderId = $conn->insert_id;
-
-            // Insert order items
-            $itemQuery = "INSERT INTO order_items (order_ID, menu_item_ID, quantity, price_at_time) 
-                          VALUES (?, ?, ?, ?)";
-            $itemStmt = $conn->prepare($itemQuery);
-            if (!$itemStmt) {
-                throw new Exception("Prepare statement for order items failed: " . $conn->error);
-            }
-
-            foreach ($orderItems as $item) {
-                // Get menu_item_ID based on item name
-                $menuItemQuery = "SELECT ID FROM menu_item WHERE name = ?";
-                $menuItemStmt = $conn->prepare($menuItemQuery);
-                if (!$menuItemStmt) {
-                    throw new Exception("Prepare statement for menu item failed: " . $conn->error);
-                }
-
-                $menuItemStmt->bind_param("s", $item['name']);
-                if (!$menuItemStmt->execute()) {
-                    throw new Exception("Execute failed for menu item: " . $menuItemStmt->error);
-                }
-
-                $result = $menuItemStmt->get_result();
-                $menuItem = $result->fetch_assoc();
-
-                if ($menuItem) {
-                    $itemStmt->bind_param("iiid",
-                        $orderId,
-                        $menuItem['ID'],
-                        $item['quantity'],
-                        $item['price']
-                    );
-                    if (!$itemStmt->execute()) {
-                        throw new Exception("Execute failed for order item: " . $itemStmt->error);
-                    }
-                } else {
-                    throw new Exception("Menu item not found: " . $item['name']);
-                }
-
-                $menuItemStmt->close();
-            }
-
-            // Commit transaction
-            $conn->commit();
-
-            // Optionally, you can send a confirmation email to the user here
-
-            // Redirect to order confirmation page
-            redirectWithMessage("Your payment was successful! Your order has been placed.", true);
-        } else {
-            throw new Exception("Payment not completed. Status: " . $status);
+        if ($paymentIntentStatus !== 'succeeded') {
+            // Payment really isn't completed
+            throw new Exception("Payment is not completed. Payment Intent Status: " . $paymentIntentStatus);
         }
-    } else {
-        throw new Exception("No payment found for this session.");
+    }
+
+    // At this point, either paymentStatus is 'paid' or paymentIntentStatus is 'succeeded'
+    if (!isset($metadata['customer_id']) || !isset($metadata['total_amount']) || !isset($metadata['order_items']) || !isset($metadata['order_type'])) {
+        throw new Exception("Insufficient metadata to process order.");
+    }
+
+    $customerId = $metadata['customer_id'];
+    $totalAmount = floatval($metadata['total_amount']);
+    $orderType = $metadata['order_type'];
+    $orderItems = json_decode($metadata['order_items'], true);
+
+    if (!is_array($orderItems) || empty($orderItems)) {
+        throw new Exception("No order items found in metadata.");
+    }
+
+    // Insert order and order items into the database
+    $conn->begin_transaction();
+
+    try {
+        $orderQuery = "INSERT INTO `order` (order_type, order_status, total_price, payment_id, customer_ID) VALUES (?, 'PENDING', ?, ?, ?)";
+        $stmt = $conn->prepare($orderQuery);
+        if (!$stmt) {
+            throw new Exception("Failed to prepare order statement: " . $conn->error);
+        }
+
+        $stmt->bind_param("sdsi", $orderType, $totalAmount, $paymentIntentId, $customerId);
+        if (!$stmt->execute()) {
+            throw new Exception("Failed to insert order: " . $stmt->error);
+        }
+
+        $orderId = $conn->insert_id;
+
+        // Insert order items
+        foreach ($orderItems as $item) {
+            $menuItemStmt = $conn->prepare("SELECT ID FROM menu_item WHERE name = ?");
+            $menuItemStmt->bind_param("s", $item['name']);
+            $menuItemStmt->execute();
+            $menuItemResult = $menuItemStmt->get_result();
+            $menuItem = $menuItemResult->fetch_assoc();
+
+            if (!$menuItem) {
+                throw new Exception("Menu item not found: " . $item['name']);
+            }
+
+            $itemQuery = "INSERT INTO order_items (order_ID, menu_item_ID, quantity, price_at_time) VALUES (?, ?, ?, ?)";
+            $itemStmt = $conn->prepare($itemQuery);
+            $itemStmt->bind_param("iiid", $orderId, $menuItem['ID'], $item['quantity'], $item['price']);
+            if (!$itemStmt->execute()) {
+                throw new Exception("Failed to insert order item: " . $itemStmt->error);
+            }
+        }
+
+        $conn->commit();
+        redirectWithMessage("Payment successful! Your order has been placed.", true);
+
+    } catch (Exception $e) {
+        $conn->rollback();
+        throw $e;
     }
 
 } catch (Exception $e) {
-    // Log the error message for debugging (do not expose sensitive info to users)
-    error_log("PayMongo Success Error: " . $e->getMessage());
-
-    // Redirect with error message
-    redirectWithMessage("There was an issue processing your payment. Please try again.", false);
+    redirectWithMessage("There was an issue processing your payment: " . $e->getMessage(), false);
 }
-
-?>

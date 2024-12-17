@@ -55,7 +55,6 @@ class BeyondCorp extends \Google\Service
   public $projects_locations_operations;
   public $projects_locations_securityGateways;
   public $projects_locations_securityGateways_applications;
-  public $v_projects_locations_securityGateways;
   public $rootUrlTemplate;
 
   /**
@@ -1095,11 +1094,11 @@ class BeyondCorp extends \Google\Service
                   'type' => 'string',
                 ],
               ],
-            ],'setPeering' => [
-              'path' => 'v1/{+securityGateway}:setPeering',
+            ],'setIamPolicy' => [
+              'path' => 'v1/{+resource}:setIamPolicy',
               'httpMethod' => 'POST',
               'parameters' => [
-                'securityGateway' => [
+                'resource' => [
                   'location' => 'path',
                   'type' => 'string',
                   'required' => true,
@@ -1195,26 +1194,6 @@ class BeyondCorp extends \Google\Service
               ],
             ],'setIamPolicy' => [
               'path' => 'v1/{+resource}:setIamPolicy',
-              'httpMethod' => 'POST',
-              'parameters' => [
-                'resource' => [
-                  'location' => 'path',
-                  'type' => 'string',
-                  'required' => true,
-                ],
-              ],
-            ],
-          ]
-        ]
-    );
-    $this->v_projects_locations_securityGateways = new BeyondCorp\Resource\VProjectsLocationsSecurityGateways(
-        $this,
-        $this->serviceName,
-        'securityGateways',
-        [
-          'methods' => [
-            'setIamPolicy' => [
-              'path' => 'v/{+resource}:setIamPolicy',
               'httpMethod' => 'POST',
               'parameters' => [
                 'resource' => [

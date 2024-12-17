@@ -769,6 +769,7 @@ td.status-cell {
 
 .modal-content {
     /* background-color: #fefefe; */
+    
     background-color: #3e5267; 
     max-width: 800px;
     max-height: 80%;
@@ -1199,7 +1200,7 @@ td.status-cell {
 .action-btn.revert.status-pending { background-color: orange !important; }
 .action-btn.revert.status-preparing { background-color: orangered !important; }
 
-.action-btn.update.preparing { background-color: orangered !important; }
+.action-btn.update.preparing { background-color: rgb(255, 204, 0) !important; }
 .action-btn.update.ready-for-pickup { background-color: blue !important; }
 .action-btn.update.complete { background-color: green !important; }
 

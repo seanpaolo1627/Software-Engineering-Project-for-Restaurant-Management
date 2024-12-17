@@ -92,8 +92,8 @@ class ProjectsLocationsRepositoriesReleaseConfigs extends \Google\Service\Resour
    * server will pick an appropriate default.
    * @opt_param string pageToken Optional. Page token received from a previous
    * `ListReleaseConfigs` call. Provide this to retrieve the subsequent page. When
-   * paginating, all other parameters provided to `ListReleaseConfigs` must match
-   * the call that provided the page token.
+   * paginating, all other parameters provided to `ListReleaseConfigs`, with the
+   * exception of `page_size`, must match the call that provided the page token.
    * @return ListReleaseConfigsResponse
    * @throws \Google\Service\Exception
    */
@@ -104,7 +104,11 @@ class ProjectsLocationsRepositoriesReleaseConfigs extends \Google\Service\Resour
     return $this->call('list', [$params], ListReleaseConfigsResponse::class);
   }
   /**
-   * Updates a single ReleaseConfig. (releaseConfigs.patch)
+   * Updates a single ReleaseConfig. *Note:* This method does not fully implement
+   * AIP/134. In particular: 1. The wildcard entry (***) is treated as a bad
+   * request 2. When the *field_mask* is omitted, instead of only updating the set
+   * fields, the request is treated as a full update on all modifiable fields
+   * (releaseConfigs.patch)
    *
    * @param string $name Identifier. The release config's name.
    * @param ReleaseConfig $postBody

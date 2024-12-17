@@ -1,12 +1,15 @@
 <?php
-// login/google-config.php
+// install using composer require vlucas/phpdotenv
 
-require_once __DIR__ . '/../vendor/autoload.php'; // Adjust path as necessary
+require_once __DIR__ . '/../vendor/autoload.php';
+
+// Load environment variables from the .env file (two directories up)
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../../');
+$dotenv->load();
 
 $client = new Google_Client();
-$client->setClientId('47300271199-q65n7h2qc6dmg1e8q1jmekfdm5cge5l5.apps.googleusercontent.com'); // Replace with your actual Client ID
-$client->setClientSecret('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'); // Replace with your actual Client Secret
-$client->setRedirectUri('http://localhost/carasfoodhaven/menu_webpage/menu.php'); // As specified
+$client->setClientId($_ENV['GOOGLE_CLIENT_ID']);
+$client->setClientSecret($_ENV['GOOGLE_CLIENT_SECRET']);
+$client->setRedirectUri('http://localhost/carasfoodhaven/menu_webpage/menu.php');
 $client->addScope('email');
 $client->addScope('profile');
-?>

@@ -1,7 +1,7 @@
 <?php
 // menu_webpage/order_confirmation.php
 include 'login/connect.php';
-session_start();
+
 
 
 

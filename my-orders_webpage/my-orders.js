@@ -1,232 +1,345 @@
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize order management
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    filterButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            filterButtons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            const status = button.getAttribute('data-status');
+            loadOrders(status);
+        });
+    });
 
+    // Load initial orders and counts
+    const activeStatusButton = document.querySelector('.filter-btn.active');
+    const initialStatus = activeStatusButton ? activeStatusButton.getAttribute('data-status') : 'ALL';
+    loadOrders(initialStatus);
 
-
-/*============================================================*/
-
-function showNotification(message) {
-    const container = document.getElementById('notification-container');
-
-    // Check if there is an existing notification
-    const existingNotification = container.querySelector('.notification');
-    if (existingNotification) {
-        existingNotification.remove(); // Remove it if found
+    // Initialize account dropdown functionality
+    const accountDropdown = document.querySelector('.account-dropdown');
+    if (accountDropdown) {
+        accountDropdown.addEventListener('click', function() {
+            this.querySelector('.dropdown-content').classList.toggle('show');
+        });
     }
 
-    // Create the new notification element
-    const notification = document.createElement('div');
-    notification.className = 'notification';
-    notification.textContent = message;
+    // Initialize modal close functionality
+    const modal = document.getElementById('cancel-order-modal');
+    const closeBtn = document.getElementById('closeModal');
 
-    // Append the notification to the container
+    closeBtn.onclick = () => {
+        modal.style.display = 'none';
+    };
+
+    window.onclick = (event) => {
+        if (event.target === modal) {
+            modal.style.display = 'none';
+        }
+    };
+});
+
+/**
+ * Loads orders based on the provided status.
+ * @param {string} status - The status to filter orders by.
+ */
+function loadOrders(status = 'ALL') {
+    fetch(`my-orders.php?action=get_orders&status=${status}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const ordersContainer = document.querySelector('.orders');
+                if (!ordersContainer) {
+                    console.error('Orders container not found');
+                    return;
+                }
+                ordersContainer.innerHTML = ''; // Clear existing orders
+
+                // Process all orders
+                data.orders.forEach(order => {
+                    const orderData = {
+                        id: order.id,
+                        status: order.status,
+                        statusText: order.statusText,
+                        orderDateTime: order.orderDateTime,
+                        orderType: order.orderType,
+                        total: order.total,
+                        discountCode: order.discountCode,
+                        menuItems: order.menuItems,
+                        customerInfo: {
+                            name: order.customerName,
+                            phone: order.contactInfo?.phone || 'N/A',
+                            email: order.contactInfo?.email || 'N/A',
+                            address: order.contactInfo?.address || 'N/A'
+                        }
+                    };
+
+                    addNewOrderCard(orderData);
+                });
+
+                updateCounts();
+                reapplyCurrentFilter();
+                rearrangeOrderCards();
+            } else {
+                console.error('Failed to load orders:', data.message);
+                showNotification(`Error: ${data.message}`, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error loading orders:', error);
+            showNotification('An error occurred while loading orders.', 'error');
+        });
+}
+
+/**
+ * Creates and appends a new order card to the orders container.
+ * @param {Object} orderData - The data of the order.
+ */
+function addNewOrderCard(orderData) {
+    const ordersContainer = document.querySelector('.orders');
+    if (!ordersContainer) {
+        console.error('Orders container not found');
+        return;
+    }
+
+    const newCard = document.createElement('div');
+    newCard.className = 'order-card';
+    newCard.setAttribute('data-status', orderData.status);
+    newCard.setAttribute('data-id', orderData.id);
+
+    // Generate menu items HTML
+    const menuItems = orderData.menuItems.map(item => `
+        <tr class="menu-item-row">
+            <td>${item.name}</td>
+            <td>Php ${item.price}</td>
+            <td>${item.quantity}</td>
+            <td>Php ${item.subtotal}</td>
+        </tr>
+    `).join('');
+
+    newCard.innerHTML = `
+        <div class="order-header">
+            <h2>Order ID #${orderData.id}</h2>
+            <span class="status ${orderData.status.toLowerCase().replace(/_/g, '-')}">
+                ${orderData.statusText}
+            </span>
+        </div>
+
+        <table class="order-card-details">
+            <tr>
+                <td>Order Date & Time:</td>
+                <td>${orderData.orderDateTime || 'N/A'}</td>
+            </tr>
+            <tr>
+                <td>Order Type:</td>
+                <td>${orderData.orderType || 'N/A'}</td>
+            </tr>
+            <tr>
+                <td>Address:</td>
+                <td>${orderData.customerInfo.address || 'N/A'}</td>
+            </tr>
+            <tr>
+                <td>Contact Number:</td>
+                <td>${orderData.customerInfo.phone || 'N/A'}</td>
+            </tr>
+        </table>
+
+        <table class="order-table">
+            <tr>
+                <th>Menu Item</th>
+                <th>Price</th>
+                <th>Quantity</th>
+                <th>Subtotal</th>
+            </tr>
+            ${menuItems}
+            <tr>
+                <td colspan="3" class="total-label">TOTAL</td>
+                <td>Php ${orderData.total}</td>
+            </tr>
+            <tr>
+                <td colspan="3" class="discount-label">Discount Code</td>
+                <td>${orderData.discountCode || 'N/A'}</td>
+            </tr>
+        </table>
+        <div class="action-buttons">
+            <div class="right-buttons">
+                ${orderData.status === 'PENDING' || orderData.status === 'PREPARING' ? `
+                    <button class="action-btn cancel">Cancel Order</button>
+                ` : ''}
+            </div>
+        </div>
+    `;
+
+    ordersContainer.appendChild(newCard);
+    attachEventListeners(newCard);
+}
+
+/**
+ * Attaches event listeners to buttons within an order card.
+ * @param {HTMLElement} card - The order card element.
+ */
+function attachEventListeners(card) {
+    const cancelBtn = card.querySelector('.action-btn.cancel');
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', () => {
+            showCancelConfirmation(card.getAttribute('data-id'));
+        });
+    }
+}
+
+/**
+ * Shows the cancel confirmation modal.
+ * @param {number} orderId - The ID of the order to cancel.
+ */
+function showCancelConfirmation(orderId) {
+    const modal = document.getElementById('cancel-order-modal');
+    const confirmBtn = document.getElementById('confirmCancel');
+
+    modal.style.display = 'block';
+
+    confirmBtn.onclick = () => {
+        cancelOrder(orderId);
+        modal.style.display = 'none';
+    };
+}
+
+/**
+ * Sends a request to cancel an order.
+ * @param {number} orderId - The ID of the order to cancel.
+ */
+function cancelOrder(orderId) {
+    fetch('my-orders.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            action: 'update_order_status',
+            orderId: orderId,
+            status: 'CANCELED'
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Order canceled successfully.', 'success');
+            loadOrders(document.querySelector('.filter-btn.active').getAttribute('data-status'));
+        } else {
+            showNotification(`Failed to cancel order: ${data.message}`, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('An error occurred while canceling the order.', 'error');
+    });
+}
+
+/**
+ * Displays a notification message.
+ * @param {string} message - The message to display.
+ * @param {string} type - The type of notification ('success' or 'error').
+ */
+function showNotification(message, type = 'success') {
+    const container = document.getElementById('notification-container');
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
     container.appendChild(notification);
 
-    // Start the slide-in animation
-    requestAnimationFrame(() => {
-        notification.classList.add('show');
-    });
-
-    // Automatically remove the notification after 3.5 seconds
     setTimeout(() => {
-        notification.classList.remove('show'); // Trigger slide-out
-        setTimeout(() => notification.remove(), 600); // Wait for slide-out to complete
-    }, 3500);
+        notification.remove();
+    }, 3000);
 }
 
-/*============================================================*/
+/**
+ * Updates the order counts displayed on the filter buttons.
+ */
+function updateCounts() {
+    fetch('my-orders.php?action=get_orders_counts')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const counts = data.counts;
+                Object.keys(counts).forEach(status => {
+                    const countElement = document.getElementById(`count-${status}`);
+                    if (countElement) {
+                        countElement.textContent = counts[status];
+                    }
+                });
 
-// Function to show the modal
-function openModal(modalID, element) {
-    const modal = document.getElementById(modalID);
-    modal.style.display = "flex"; // Show modal using flex
+                // Update 'ALL' count
+                const allCount = counts['PENDING'] + counts['COMPLETE'] + counts['CANCELED'];
+                const allCountElement = document.getElementById('count-ALL');
+                if (allCountElement) {
+                    allCountElement.textContent = allCount;
+                }
+            } else {
+                console.error('Failed to fetch order counts:', data.message);
+            }
+        })
+        .catch(error => console.error('Error fetching counts:', error));
+}
 
-    if (modalID === 'menu-item-modal' && element) {
-        const card = element.closest('.card');
-        const menuItemName = card.querySelector('h1').textContent;
-        const menuItemPrice = card.querySelector('p').textContent;
-
-        // Update modal content
-        document.getElementById('menu-item-header').textContent = menuItemName;
-        document.getElementById('menu-item-price').textContent = menuItemPrice;
+/**
+ * Reapplies the current filter to the displayed orders.
+ */
+function reapplyCurrentFilter() {
+    const activeFilter = document.querySelector('.filter-btn.active');
+    if (activeFilter) {
+        const status = activeFilter.getAttribute('data-status');
+        const cards = document.querySelectorAll('.order-card');
+        cards.forEach(card => {
+            if (status === 'ALL' || card.getAttribute('data-status') === status) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
     }
 }
 
-// Function to close the modal
-function closeModal(modalID) {
-    const modal = document.getElementById(modalID);
-    modal.style.display = "none"; // Hide the modal
-}
+/**
+ * Rearranges the order cards in descending order by Order ID.
+ */
+function rearrangeOrderCards() {
+    const ordersContainer = document.querySelector('.orders');
+    const orderCards = Array.from(ordersContainer.children);
 
-/*============================================================*/
-
-function incrementQuantity(button) {
-    const input = button.closest('.quantity-controls').querySelector('.quantity-input');
-    const card = button.closest('.card');
-    const menuItemName = card.querySelector('h1').textContent;
-    let currentQty = parseInt(input.value) || 0;
-
-    if (currentQty < 10) {
-        input.value = currentQty + 1;
-        updateOrderSummary(card, input.value);  
-        updateCardStyle(card, input.value);
-
-        // Check if the item is newly added
-        if (currentQty === 0) {
-            showNotification(`'${menuItemName}' added to your order.`);
-        }
-    } else {
-        showNotification("Quantity cannot exceed 10.");
-    }
-}
-
-/*============================================================*/
-
-function decrementQuantity(button) {
-    const card = button.closest('.card');
-    const input = card.querySelector('.quantity-input');
-    const menuItemName = card.querySelector('h1').textContent;
-    let currentQty = parseInt(input.value) || 0;
-
-    if (currentQty > 1) {
-        input.value = currentQty - 1;
-        updateOrderSummary(card, input.value);
-        updateCardStyle(card, input.value);
-    } else if (currentQty === 1) {
-        input.value = '';
-        showNotification(`'${menuItemName}' removed from your order.`);
-        updateOrderSummary(card, input.value);
-        updateCardStyle(card, input.value);
-    }
-}
-
-/*============================================================*/
-
-function updateOrderSummary(card, quantity) {
-    const orderSummaryTable = document.querySelector('.order-summary-table tbody');
-    const menuItemName = card.querySelector('h1').textContent;
-    const priceText = card.querySelector('p').textContent;
-    const price = parseFloat(priceText.replace('Php ', ''));
-    const subtotal = price * quantity;
-    const existingRow = orderSummaryTable.querySelector(`tr[data-item-id="${card.id}"]`);
-
-    // Remove the empty message row if it exists
-    const emptyMessageRow = orderSummaryTable.querySelector('.empty-message-row');
-    if (emptyMessageRow) {
-        emptyMessageRow.style.display = 'none';
-    }
-
-    if (quantity > 0) {
-        if (existingRow) {
-            // Update existing row
-            existingRow.querySelector('.order-qty').textContent = quantity;
-            existingRow.querySelector('.order-subtotal').textContent = `Php ${subtotal}`;
-        } else {
-            // Add new row
-            const newRow = document.createElement('tr');
-            newRow.setAttribute('data-item-id', card.id);
-            newRow.innerHTML = `
-                <td>${menuItemName}</td>
-                <td>${priceText}</td>
-                <td class="order-qty">${quantity}</td>
-                <td class="order-subtotal">Php ${subtotal}</td>
-            `;
-            orderSummaryTable.insertBefore(newRow, orderSummaryTable.querySelector('.total-row'));
-        }
-    } else if (existingRow) {
-        // Remove row if quantity is 0
-        existingRow.remove();
-    }
-
-    updateTotalAmount();
-}
-
-/*============================================================*/
-
-function updateTotalAmount() {
-    const orderSummaryTable = document.querySelector('.order-summary-table tbody');
-    const subtotals = orderSummaryTable.querySelectorAll('.order-subtotal');
-    let total = 0;
-
-    subtotals.forEach(subtotal => {
-        total += parseFloat(subtotal.textContent.replace('Php ', ''));
+    orderCards.sort((a, b) => {
+        const idA = parseInt(a.querySelector('.order-header h2').textContent.match(/\d+/)[0]);
+        const idB = parseInt(b.querySelector('.order-header h2').textContent.match(/\d+/)[0]);
+        return idB - idA;
     });
 
-    const totalAmountCell = orderSummaryTable.querySelector('.total-amount');
-    totalAmountCell.textContent = `Php ${total}`;
-
-    // Check if there are no items in the order
-    const emptyMessageRow = orderSummaryTable.querySelector('.empty-message-row');
-    const confirmOrderButton = document.querySelector('.confirm-order-button');
-
-    if (subtotals.length === 0) {
-        if (emptyMessageRow) {
-            emptyMessageRow.style.display = 'table-row';
-        }
-        confirmOrderButton.style.display = 'none'; // Hide the confirm order button
-    } else {
-        if (emptyMessageRow) {
-            emptyMessageRow.style.display = 'none';
-        }
-        confirmOrderButton.style.display = 'block'; // Show the confirm order button
-    }
+    ordersContainer.innerHTML = '';
+    orderCards.forEach(card => ordersContainer.appendChild(card));
 }
 
-/*============================================================*/
-  
-// Function to update card style based on quantity
-function updateCardStyle(card, quantity) {
-    const imgContainer = card.querySelector('.card-img-container img'); // Get the card image container
-    const input = card.querySelector('.quantity-input'); 
-    const categoryId = card.classList[1]; // Extract the category ID
+/**
+ * Fetches and updates order counts for filter buttons.
+ */
+function updateCounts() {
+    fetch('my-orders.php?action=get_orders_counts')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const counts = data.counts;
+                // Update specific status counts
+                ['PENDING', 'COMPLETE', 'CANCELED'].forEach(status => {
+                    const countElement = document.getElementById(`count-${status}`);
+                    if (countElement) {
+                        countElement.textContent = counts[status] || 0;
+                    }
+                });
 
-    // Store the previous quantity in a data attribute
-    const previousQuantity = input.dataset.previousQuantity || 0;
-
-    if (quantity) {
-        card.style.backgroundColor = 'rgb(255, 189, 67)'; 
-        card.style.borderColor = '#ff6600'; 
-        imgContainer.style.borderColor = '#ff6600'; 
-        input.style.backgroundColor = 'orange';
-        input.style.borderColor = '#ff6600';
-
-        // Increment badge only if transitioning from 0 to 1 or more
-        if (previousQuantity == 0) {
-            updateBadge(categoryId, 1);
-        }
-    } else {
-        card.style.backgroundColor = ''; 
-        card.style.borderColor = ''; 
-        imgContainer.style.borderColor = ''; 
-        input.style.backgroundColor = '';
-        input.style.borderColor = '';
-
-        // Decrement badge only if transitioning to 0
-        if (previousQuantity > 0) {
-            updateBadge(categoryId, -1);
-        }
-    }
-
-    // Update the previous quantity
-    input.dataset.previousQuantity = quantity;
+                // Update 'ALL' count
+                const allCount = (counts.PENDING || 0) + (counts.COMPLETE || 0) + (counts.CANCELED || 0);
+                const allCountElement = document.getElementById('count-ALL');
+                if (allCountElement) {
+                    allCountElement.textContent = allCount;
+                }
+            } else {
+                console.error('Failed to fetch order counts:', data.message);
+            }
+        })
+        .catch(error => console.error('Error fetching counts:', error));
 }
-
-/*============================================================*/
-
-// Function to update the badge count based on category ID
-function updateBadge(categoryId, change) {
-    const menuBtn = document.querySelector(`.verticalmenu-btn[id="${categoryId}"]`);
-    
-    if (menuBtn) { // Ensure the element is a vertical menu button
-        const badge = menuBtn.querySelector('.notification-badge');
-        let currentCount = parseInt(badge.textContent) || 0;
-
-        currentCount += change; // Update the count based on the change
-        badge.textContent = currentCount; // Set the new count
-
-        // Show the badge if count is 1 or more, otherwise hide it
-        badge.style.display = currentCount > 0 ? 'inline-block' : 'none';
-    } else {
-        console.warn(`No vertical menu button found with ID: ${categoryId}`);
-    }
-}
-
-/*============================================================*/
