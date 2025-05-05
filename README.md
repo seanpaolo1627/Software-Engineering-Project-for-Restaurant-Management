@@ -2,7 +2,7 @@
 
 ## Overview
 
-This project is a comprehensive web application designed for managing restaurant operations and providing a seamless online ordering experience for customers. It consists of three main components: a customer-facing menu and ordering system, a customer order tracking portal, and a restaurant management dashboard.
+This project is a web application  for managing the restaurant operations for the restaurant named Caras Food Haven located in Panabo City and providing a seamless online ordering experience for customers. It consists of three main components: a customer menu and ordering system, a customer payment tracking portal using PayMongo, and a restaurant management dashboard that has functionalities such as stock and stock out ingredients, Employee and Customer Profiling, etc.
 
 ## Technologies Used
 
@@ -26,7 +26,7 @@ This project is a comprehensive web application designed for managing restaurant
 *   **Order Confirmation:** Displays order confirmation details to the customer.
 *   **Customer Account Management:** Allows customers to view and update their account details.
 
-### 2. My Orders (`my-orders_webpage`)
+### 2.  Orders (`my-orders_webpage`)
 
 *   **Order History:** Registered customers can log in and view their complete order history.
 *   **Order Status Tracking:** Displays the current status of each order (e.g., Pending, Preparing, Out for Delivery, Delivered).
